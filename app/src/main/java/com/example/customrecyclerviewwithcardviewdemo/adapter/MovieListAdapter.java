@@ -1,7 +1,10 @@
 package com.example.customrecyclerviewwithcardviewdemo.adapter;
 
+import android.content.Context;
+import android.net.Uri;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +13,7 @@ import android.widget.TextView;
 
 import com.example.customrecyclerviewwithcardviewdemo.R;
 import com.example.customrecyclerviewwithcardviewdemo.model.Movie;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -38,6 +42,7 @@ public class MovieListAdapter extends RecyclerView.Adapter {
 
     public MovieListAdapter(List<Movie> movies) {
         this.movies = movies;
+        debugLog("Movie list of size " + movies.size() + " is set in the MovieListAdapter");
     }
 
     @Override
@@ -56,10 +61,35 @@ public class MovieListAdapter extends RecyclerView.Adapter {
         mvh.rating.setText(String.valueOf(m.getRating()));
         mvh.genre.setText(m.getStringifiedGenre());
         mvh.year.setText(m.getYear() + "");
+        debugLog(m.getThumbnailUrl());
+        buildPicassoInstance(mvh.thumbnail.getContext())
+                .load(m.getThumbnailUrl())
+                .placeholder(R.drawable.image_placeholder_downloading)
+                .error(R.drawable.image_placeholder_downloading_error).fit()
+                //.resize(150,150)
+                .into(mvh.thumbnail);
     }
 
     @Override
     public int getItemCount() {
         return movies.size();
+    }
+
+    private void debugLog(String msg) {
+        Log.d(getClass().getSimpleName(), msg);
+    }
+
+    private Picasso buildPicassoInstance(Context context) {
+        Picasso p = new Picasso.Builder(context)
+                .listener(new Picasso.Listener() {
+                    @Override
+                    public void onImageLoadFailed(Picasso picasso, Uri uri, Exception e) {
+                        debugLog("The URL " + uri + " failed to download because of the error: " + e.getMessage());
+                    }
+                })
+                .build();
+//        Picasso p = Picasso.with(context);
+        p.setIndicatorsEnabled(true); //To be set for development environment for debugging purpose only. Not for Production Use.
+        return p;
     }
 }
